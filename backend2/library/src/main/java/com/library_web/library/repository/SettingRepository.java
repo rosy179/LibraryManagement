@@ -5,4 +5,4 @@ import org.springframework.stereotype.Repository;
 import com.library_web.library.model.Setting;
 
 @Repository
-public interface SettingRepository extends JpaRepository<Setting, Long> {}
+public interface SettingRepository extends JpaRepository<Setting, String> {}

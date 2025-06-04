@@ -9,7 +9,7 @@ import { FiLoader } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 
-const Page = () => {
+const page = () => {
   const [allBorrowCards, setAllBorrowCards] = useState([]);
 
   const [selectedButton, setSelectedButton] = useState("Đã yêu cầu");
@@ -17,10 +17,10 @@ const Page = () => {
   useEffect(() => {
     const fetchBorrowCards = async () => {
       try {
-        const userId = localStorage.getItem("id"); // lấy thông tin người dùng từ localStorage
+        const user = JSON.parse(localStorage.getItem("persist:root")); // lấy thông tin người dùng từ localStorage
 
         const response = await axios.post(
-          `http://localhost:8080/api/borrow-cards/user/${userId}` // lấy thông tin phiếu mượn của người dùng
+          `${process.env.NEXT_PUBLIC_API_URL}/api/borrow-cards/user/${user.id}` // lấy thông tin phiếu mượn của người dùng
         );
         setAllBorrowCards(response.data);
         console.log(response.data);
@@ -217,4 +217,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default page;

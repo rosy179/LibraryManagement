@@ -13,7 +13,7 @@ import { BsCartPlus } from "react-icons/bs";
 const BookDetailsPage = () => {
   const { id } = useParams();
   const [details, setDetails] = useState(null);
-  const userId = localStorage.getItem("id"); // lấy thông tin người dùng từ localStorage
+  const user = JSON.parse(localStorage.getItem("persist:root")); // lấy thông tin người dùng từ localStorage
   const [isAddedToCart, setIsAddedToCart] = useState(false);
 
   // map enum sang label
@@ -35,7 +35,7 @@ const BookDetailsPage = () => {
     const fetchBook = async () => {
       try {
         const { data } = await axios.get(
-          `http://localhost:8080/api/book/${id}`
+          `${process.env.NEXT_PUBLIC_API_URL}/api/book/${id}`
         );
         // nếu backend trả về mảng, lấy phần tử đầu
         const book = Array.isArray(data) ? data[0] : data;
@@ -50,7 +50,9 @@ const BookDetailsPage = () => {
   useEffect(() => {
     const checkBookInCart = async () => {
       try {
-        const res = await axios.get(`http://localhost:8080/api/cart/${userId}`);
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/cart/${user.id}`
+        );
         const cartBooks = res.data.data; // giả sử trả về mảng books [{ id: ..., ... }]
         const found = cartBooks?.some((book) => book.bookId == id); // id là id của sách hiện tại
         setIsAddedToCart(found);
@@ -60,7 +62,7 @@ const BookDetailsPage = () => {
     };
 
     checkBookInCart();
-  }, [userId, id]);
+  }, [user.id, id]);
 
   if (!details) {
     return (
@@ -73,7 +75,7 @@ const BookDetailsPage = () => {
   const handleAddToCart = async () => {
     try {
       const res = await axios.post(
-        `http://localhost:8080/api/cart/${userId}/add/books`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/cart/${user.id}/add/books`,
         [id] // đưa vào mảng 1 phần tử
       );
 
@@ -91,13 +93,13 @@ const BookDetailsPage = () => {
 
   const handleBorrowBook = async () => {
     try {
-      const userId = localStorage.getItem("id"); // lấy thông tin người dùng từ localStorage
-      console.log("userId:", userId, "bookId:", id);
+      const user = JSON.parse(localStorage.getItem("persist:root")); // lấy thông tin người dùng từ localStorage
+      console.log(id);
       // gửi yêu cầu mượn sách
       const response = await axios.post(
-        `http://localhost:8080/api/borrow-cards`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/borrow-cards`,
         {
-          userId: userId,
+          userId: user.id,
           borrowedBooks: [
             {
               bookId: id,
@@ -111,15 +113,6 @@ const BookDetailsPage = () => {
           ).toISOString(), // Ngày trả sách là 14 ngày sau
         }
       );
-      console.log("response:", response);
-      console.log("Request body:", {
-        userId,
-        bookId: id,
-        borrowDate: new Date().toISOString(),
-        dueDate: new Date(
-          new Date().setDate(new Date().getDate() + 14)
-        ).toISOString(),
-      });
 
       if (response.status === 200) {
         alert("Phiếu mượn đã được tạo");

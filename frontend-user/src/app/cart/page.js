@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import LeftSideBar from "../components/LeftSideBar";
 import BookCard from "./book";
 import axios from "axios";
-
 const books = [
   {
     id: "DRPN001",
@@ -67,11 +66,11 @@ const books = [
   },
 ];
 
-const Page = () => {
+const page = () => {
   const [selected, setSelected] = useState([]);
   const [books, setBooks] = useState(""); // Giỏ hàng
   const [loading, setLoading] = useState(true); // Trạng thái loading
-  const userId = localStorage.getItem("id"); // lấy thông tin người dùng từ localStorage
+  const user = JSON.parse(localStorage.getItem("persist:root")); // lấy thông tin người dùng từ localStorage
   let cartId = "";
 
   // Lấy giỏ hàng từ API theo userId
@@ -79,7 +78,7 @@ const Page = () => {
     try {
       setLoading(true); // Bắt đầu tải dữ liệu
       const response = await fetch(
-        `http://localhost:8080/api/cart/${userId}` // Endpoint API lấy giỏ hàng theo userId
+        `${process.env.NEXT_PUBLIC_API_URL}/api/cart/${user.id}` // Endpoint API lấy giỏ hàng theo userId
       ); // Endpoint API lấy giỏ hàng theo userId
 
       if (response.ok) {
@@ -98,7 +97,7 @@ const Page = () => {
 
   useEffect(() => {
     fetchCart();
-  }, [userId]);
+  }, [user.id]);
 
   // tick / bỏ tick 1 cuốn
   const toggleBook = (idx, checked) => {
@@ -116,7 +115,7 @@ const Page = () => {
   const handleDeleteBooks = async () => {
     try {
       const response = await axios.delete(
-        `http://localhost:8080/api/cart/${cartId}`, // Endpoint API xóa sách trong giỏ hàng
+        `${process.env.NEXT_PUBLIC_API_URL}/api/cart/${cartId}`, // Endpoint API xóa sách trong giỏ hàng
         {
           data: selected,
         }
@@ -139,7 +138,7 @@ const Page = () => {
       // console.log(booksInCart);
       // Gửi yêu cầu đến backend để tạo phiếu mượn
       const response = await axios.post(
-        "http://localhost:8080/api/borrow-cards",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/borrow-cards`,
         {
           userId: user.id,
           borrowedBooks: booksInCart.map((bookId) => ({
@@ -159,7 +158,7 @@ const Page = () => {
         console.log(response.data); // Xem chi tiết phiếu mượn
 
         const deleteResponse = await axios.delete(
-          `http://localhost:8080/api/cart/${user.id}/remove/books`,
+          `${process.env.NEXT_PUBLIC_API_URL}/api/cart/${user.id}/remove/books`,
           {
             data: booksInCart,
           }
@@ -245,4 +244,4 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default page;

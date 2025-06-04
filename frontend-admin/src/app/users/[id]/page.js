@@ -47,7 +47,9 @@ const InputField = ({ label, value, disabled, onChange, placeholder }) => (
       disabled={disabled}
       placeholder={placeholder}
       className={`h-10 text-lg rounded-[10px] ${
-        disabled ? "bg-zinc-300 text-neutral-500 cursor-not-allowed" : "bg-white text-black"
+        disabled
+          ? "bg-zinc-300 text-neutral-500 cursor-not-allowed"
+          : "bg-white text-black"
       }`}
     />
   </div>
@@ -55,29 +57,44 @@ const InputField = ({ label, value, disabled, onChange, placeholder }) => (
 
 // Date Picker Field Component
 const DatePickerField = ({ value, onChange }) => {
-  const [startDate, setStartDate] = useState(
-    value ? new Date(value.split("/").reverse().join("-")) : new Date()
-  );
+  const parseDate = (dateString) => {
+    if (!dateString || typeof dateString !== "string") return null;
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date;
+  };
+
+  const [startDate, setStartDate] = useState(parseDate(value));
+
+  useEffect(() => {
+    console.log("DatePickerField value:", value);
+    setStartDate(parseDate(value));
+  }, [value]);
 
   const handleDateChange = (date) => {
     setStartDate(date);
-    onChange(date.toLocaleDateString("vi-VN"));
+    const formattedDate = date ? date.toISOString().split("T")[0] : "";
+    onChange(formattedDate);
   };
 
   return (
     <div className="flex flex-col w-full">
-      <label className="mb-2 ml-2 text-lg font-bold text-black">Ngày Sinh</label>
+      <label className="mb-2 ml-2 text-lg font-bold text-black">
+        Ngày Sinh
+      </label>
       <div className="relative flex items-center">
         <DatePicker
           selected={startDate}
           onChange={handleDateChange}
-          dateFormat="dd/MM/yyyy"
-          className="p-2 w-full text-lg bg-white rounded-[10px] h-10 "
+          dateFormat="yyyy-MM-dd"
+          className="p-2 w-full text-lg bg-white rounded-[10px] h-10"
+          placeholderText="yyyy-mm-dd"
         />
         <Button
           className="absolute right-2 h-8 w-8 bg-[#062D76] hover:bg-gray-700 rounded-[10px] cursor-pointer"
           onClick={() =>
-            document.querySelector(".react-datepicker__input-container input").focus()
+            document
+              .querySelector(".react-datepicker__input-container input")
+              ?.focus()
           }
         >
           <Calendar className="w-5 h-5" color="white" />
@@ -95,21 +112,27 @@ const AvatarUpload = ({ avatarUrl, onAvatarChange }) => {
       const formData = new FormData();
       formData.append("file", file);
       try {
-        const response = await axios.post("http://localhost:8080/api/upload", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-          },
-        });
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/upload`,
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+              Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            },
+          }
+        );
         onAvatarChange(response.data.url || URL.createObjectURL(file));
         toast.success("Tải ảnh đại diện thành công");
       } catch (error) {
         console.error("Error uploading file:", {
           message: error.message,
-          response: error.response ? {
-            status: error.response.status,
-            data: error.response.data,
-          } : "No response data",
+          response: error.response
+            ? {
+                status: error.response.status,
+                data: error.response.data,
+              }
+            : "No response data",
         });
         onAvatarChange(URL.createObjectURL(file)); // Fallback to local URL
         toast.error("Không thể tải ảnh đại diện");
@@ -117,11 +140,15 @@ const AvatarUpload = ({ avatarUrl, onAvatarChange }) => {
     }
   };
 
+  // Use a placeholder image if avatarUrl is empty or falsy
+  const displayAvatarUrl =
+    avatarUrl || "https://via.placeholder.com/200?text=Avatar";
+
   return (
     <div className="flex flex-col w-[380px] max-md:w-full mt-8">
       <h2 className="mb-2 ml-10 text-lg font-bold text-black">Ảnh Đại Diện</h2>
       <img
-        src={avatarUrl || "/default-avatar.png"}
+        src={displayAvatarUrl}
         alt="Avatar"
         className="border border-[#D66766] border-solid h-[200px] w-[200px] rounded-full object-cover"
       />
@@ -136,7 +163,10 @@ const AvatarUpload = ({ avatarUrl, onAvatarChange }) => {
         asChild
         className="mt-4 w-[200px] h-10 bg-[#062D76] hover:bg-gray-700 rounded-[10px]"
       >
-        <label htmlFor="avatarUpload" className="flex items-center gap-2 cursor-pointer">
+        <label
+          htmlFor="avatarUpload"
+          className="flex items-center gap-2 cursor-pointer"
+        >
           <Upload className="w-5 h-5" color="white" />
           Tải ảnh đại diện
         </label>
@@ -152,7 +182,9 @@ const roleMap = {
   "Người dùng": "USER",
   "Nhân viên": "STAFF",
 };
-const reverseRoleMap = Object.fromEntries(Object.entries(roleMap).map(([k, v]) => [v, k]));
+const reverseRoleMap = Object.fromEntries(
+  Object.entries(roleMap).map(([k, v]) => [v, k])
+);
 
 const RoleSelector = ({ value, onChange }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -161,7 +193,7 @@ const RoleSelector = ({ value, onChange }) => {
     <div className="flex flex-col w-full relative">
       <h2 className="mb-2 ml-2 text-lg font-bold text-black">Vai Trò</h2>
       <Button
-        className="flex justify-between items-center h-10 bg-white text-black rounded-[10px] shadow-sm  hover:bg-[#D66766] cursor-pointer" 
+        className="flex justify-between items-center h-10 bg-white text-black rounded-[10px] shadow-sm hover:bg-[#D66766] cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span>{reverseRoleMap[value] || value || "Chọn vai trò"}</span>
@@ -196,7 +228,7 @@ const GenderSelector = ({ value, onChange }) => {
     <div className="flex flex-col w-full relative">
       <h2 className="mb-2 ml-2 text-lg font-bold text-black">Giới Tính</h2>
       <Button
-        className="flex justify-between items-center h-10 bg-white text-black rounded-[10px] shadow-sm  hover:bg-[#D66766] cursor-pointer"
+        className="flex justify-between items-center h-10 bg-white text-black rounded-[10px] shadow-sm hover:bg-[#D66766] cursor-pointer"
         onClick={() => setIsOpen(!isOpen)}
       >
         <span>{value || "Chọn giới tính"}</span>
@@ -222,13 +254,51 @@ const GenderSelector = ({ value, onChange }) => {
   );
 };
 
+// OTP Input Component
+const OtpInput = ({ onOtpChange, onRequestOtp, isOtpSent, isEmailChanged }) => {
+  const [otp, setOtp] = useState("");
+
+  const handleOtpChange = (e) => {
+    setOtp(e.target.value);
+    onOtpChange(e.target.value);
+  };
+
+  return (
+    <div className="flex flex-col w-full mt-6">
+      <label className="mb-2 ml-2 text-lg font-bold text-black">Mã OTP</label>
+      <div className="flex items-center gap-4">
+        <Input
+          type="text"
+          value={otp}
+          onChange={handleOtpChange}
+          placeholder="Nhập mã OTP (6 chữ số)"
+          className="h-10 text-lg rounded-[10px] bg-white text-black"
+          maxLength={6}
+          disabled={!isEmailChanged || !isOtpSent}
+        />
+        <Button
+          onClick={onRequestOtp}
+          className={`h-10 w-[150px] rounded-[10px] ${
+            isEmailChanged && !isOtpSent
+              ? "bg-[#062D76] hover:bg-gray-700 cursor-pointer"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
+          disabled={!isEmailChanged || isOtpSent}
+        >
+          Gửi OTP
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export default function Page() {
   const initialData = {
     id: "",
-    username: "",
+    fullname: "",
     email: "",
     phone: "",
-    birthDate: "01/01/2000",
+    birthDate: "",
     avatar: "",
     role: "",
     gender: "",
@@ -237,6 +307,10 @@ export default function Page() {
   const router = useRouter();
   const { id } = useParams();
   const [formData, setFormData] = useState(initialData);
+  const [originalEmail, setOriginalEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [isEmailChanged, setIsEmailChanged] = useState(false);
+  const [isOtpSent, setIsOtpSent] = useState(false);
 
   // Fetch user data on mount
   useEffect(() => {
@@ -249,40 +323,49 @@ export default function Page() {
 
     const fetchUser = async () => {
       try {
-        const response = await axios.get("http://localhost:8080/api/admin/users", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "Accept": "*/*",
-          },
-        });
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+              Accept: "*/*",
+            },
+          }
+        );
         const user = response.data.data.find((u) => u.id === parseInt(id));
+        console.log("Fetched user data:", user);
         if (user) {
-          setFormData({
+          const userData = {
             id: user.id.toString(),
-            username: user.username,
+            fullname: user.fullname || "",
             email: user.email || "",
             phone: user.phone || "",
-            birthDate: user.birthdate
-              ? new Date(user.birthdate).toLocaleDateString("vi-VN")
-              : "01/01/2000",
+            birthDate: user.birthdate || "",
             avatar: user.avatar_url || "",
-            role: user.role,
+            role: user.role || "",
             gender: user.gender || "",
-          });
+          };
+          console.log("Setting formData:", userData);
+          setFormData(userData);
+          setOriginalEmail(user.email || "");
         } else {
           toast.error("Không tìm thấy người dùng");
         }
       } catch (error) {
         console.error("Error fetching user:", {
           message: error.message,
-          response: error.response ? {
-            status: error.response.status,
-            data: error.response.data,
-          } : "No response data",
+          response: error.response
+            ? {
+                status: error.response.status,
+                data: error.response.data,
+              }
+            : "No response data",
         });
         if (error.response?.status === 403) {
-          toast.error("Bạn không có quyền truy cập. Vui lòng đăng nhập với tài khoản admin");
+          toast.error(
+            "Bạn không có quyền truy cập. Vui lòng đăng nhập với tài khoản admin"
+          );
           router.push("/login");
         } else {
           toast.error(error.response?.data?.message || "Lỗi khi tải dữ liệu");
@@ -295,6 +378,49 @@ export default function Page() {
     }
   }, [id, router]);
 
+  // Handle OTP request
+  const handleRequestOtp = async () => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      toast.error("Vui lòng đăng nhập để tiếp tục");
+      router.push("/login");
+      return;
+    }
+
+    if (!formData.email) {
+      toast.error("Vui lòng nhập email để nhận OTP");
+      return;
+    }
+
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${id}`,
+        { email: formData.email },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            Accept: "*/*",
+          },
+        }
+      );
+      setIsOtpSent(true);
+      toast.success("OTP đã được gửi đến email của bạn");
+    } catch (error) {
+      console.error("Error requesting OTP:", {
+        message: error.message,
+        response: error.response
+          ? {
+              status: error.response.status,
+              data: error.response.data,
+            }
+          : "No response data",
+      });
+      toast.error(error.response?.data?.message || "Không thể gửi OTP");
+    }
+  };
+
+  // Handle form submission
   const handleSubmit = async () => {
     const token = localStorage.getItem("accessToken");
     if (!token) {
@@ -309,27 +435,67 @@ export default function Page() {
       return;
     }
 
-    const [day, month, year] = formData.birthDate.split("/");
-    const birthDate = new Date(`${year}-${month}-${day}`).toISOString().split("T")[0];
+    if (isEmailChanged) {
+      // Verify OTP for email change
+      if (!otp || otp.length !== 6) {
+        toast.error("Vui lòng nhập mã OTP hợp lệ (6 chữ số)");
+        return;
+      }
 
+      try {
+        const otpResponse = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/admin/verify-email-update`,
+          {
+            id: formData.id,
+            email: formData.email,
+            otp,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+              Accept: "*/*",
+            },
+          }
+        );
+        toast.success(otpResponse.data.message || "Xác thực email thành công");
+      } catch (error) {
+        console.error("Error verifying OTP:", {
+          message: error.message,
+          response: error.response
+            ? {
+                status: error.response.status,
+                data: error.response.data,
+              }
+            : "No response data",
+        });
+        toast.error(error.response?.data?.message || "Xác thực OTP thất bại");
+        return;
+      }
+    }
+
+    // Update other user data if necessary
     const userData = {
-      username: formData.username,
-      email: formData.email || null,
+      fullname: formData.fullname,
       phone: formData.phone || null,
-      birthdate: birthDate,
+      birthdate: formData.birthDate || null,
       avatar_url: formData.avatar || null,
       role: formData.role,
       gender: formData.gender,
     };
 
     try {
-      const response = await axios.put(`http://localhost:8080/api/admin/users/${id}`, userData, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-          "Accept": "*/*",
-        },
-      });
+      const response = await axios.put(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${id}`,
+        userData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+            Accept: "*/*",
+          },
+        }
+      );
 
       toast.success("Cập nhật người dùng thành công");
       setTimeout(() => {
@@ -338,10 +504,12 @@ export default function Page() {
     } catch (error) {
       console.error("Error updating user:", {
         message: error.message,
-        response: error.response ? {
-          status: error.response.status,
-          data: error.response.data,
-        } : "No response data",
+        response: error.response
+          ? {
+              status: error.response.status,
+              data: error.response.data,
+            }
+          : "No response data",
       });
       if (error.response?.status === 403) {
         toast.error("Bạn không có quyền thực hiện hành động này");
@@ -354,10 +522,11 @@ export default function Page() {
 
   const isFormChanged =
     JSON.stringify(formData) !== JSON.stringify(initialData) &&
-    formData.username &&
+    formData.fullname &&
     (formData.email || formData.phone) &&
     formData.role &&
-    formData.gender;
+    formData.gender &&
+    (!isEmailChanged || (isEmailChanged && isOtpSent));
 
   const handleAvatarChange = (newAvatar) => {
     setFormData((prev) => ({ ...prev, avatar: newAvatar }));
@@ -371,12 +540,14 @@ export default function Page() {
     setFormData((prev) => ({ ...prev, phone: newPhone }));
   };
 
-  const handleUserNameChange = (newUserName) => {
-    setFormData((prev) => ({ ...prev, username: newUserName }));
+  const handleFullnameChange = (newFullname) => {
+    setFormData((prev) => ({ ...prev, fullname: newFullname }));
   };
 
   const handleEmailChange = (newEmail) => {
     setFormData((prev) => ({ ...prev, email: newEmail }));
+    setIsEmailChanged(newEmail !== originalEmail);
+    setIsOtpSent(false); // Reset OTP sent status when email changes
   };
 
   const handleRoleChange = (newRole) => {
@@ -385,6 +556,10 @@ export default function Page() {
 
   const handleGenderChange = (newGender) => {
     setFormData((prev) => ({ ...prev, gender: newGender }));
+  };
+
+  const handleOtpChange = (newOtp) => {
+    setOtp(newOtp);
   };
 
   return (
@@ -402,10 +577,10 @@ export default function Page() {
 
         <section className="mb-6">
           <InputField
-            label="Tên Người Dùng"
-            value={formData.username}
-            onChange={handleUserNameChange}
-            placeholder="Nhập tên người dùng"
+            label="Họ và Tên"
+            value={formData.fullname}
+            onChange={handleFullnameChange}
+            placeholder="Nhập họ và tên"
           />
         </section>
 
@@ -418,6 +593,17 @@ export default function Page() {
           />
         </section>
 
+        {isEmailChanged && (
+          <section className="mb-6">
+            <OtpInput
+              onOtpChange={handleOtpChange}
+              onRequestOtp={handleRequestOtp}
+              isOtpSent={isOtpSent}
+              isEmailChanged={isEmailChanged}
+            />
+          </section>
+        )}
+
         <div className="grid grid-cols-2 gap-6">
           <section className="w-full">
             <InputField
@@ -429,7 +615,10 @@ export default function Page() {
           </section>
 
           <section className="w-full">
-            <DatePickerField value={formData.birthDate} onChange={handleDateChange} />
+            <DatePickerField
+              value={formData.birthDate}
+              onChange={handleDateChange}
+            />
           </section>
 
           <section className="w-full">
@@ -437,19 +626,27 @@ export default function Page() {
           </section>
 
           <section className="w-full">
-            <GenderSelector value={formData.gender} onChange={handleGenderChange} />
+            <GenderSelector
+              value={formData.gender}
+              onChange={handleGenderChange}
+            />
           </section>
         </div>
 
         <section className="mb-6">
-          <AvatarUpload avatarUrl={formData.avatar} onAvatarChange={handleAvatarChange} />
+          <AvatarUpload
+            avatarUrl={formData.avatar}
+            onAvatarChange={handleAvatarChange}
+          />
         </section>
 
         <footer className="flex justify-end items-center gap-4">
           <Button
             onClick={handleSubmit}
             className={`flex items-center gap-2 h-10 w-[200px] rounded-[10px] ${
-              isFormChanged ? "bg-[#062D76] hover:bg-gray-700 cursor-pointer" : "bg-gray-400 cursor-not-allowed"
+              isFormChanged
+                ? "bg-[#062D76] hover:bg-gray-700 cursor-pointer"
+                : "bg-gray-400 cursor-not-allowed"
             }`}
             disabled={!isFormChanged}
           >

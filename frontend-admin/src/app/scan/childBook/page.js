@@ -26,7 +26,7 @@ const UploadChild = ({ resultChild, setResultChild }) => {
     formData.append("type", "book");
     try {
       const response = await fetch(
-        "http://localhost:8080/upload/barcodeImage",
+        `${process.env.NEXT_PUBLIC_API_URL}/upload/barcodeImage`,
         {
           method: "POST",
           body: formData,
@@ -59,7 +59,7 @@ const UploadChild = ({ resultChild, setResultChild }) => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/api/bookchild/${text}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/bookchild/${text}`,
         {
           method: "GET",
         }

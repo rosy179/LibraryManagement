@@ -1,7 +1,5 @@
 package com.library_web.library.model;
 
-import org.antlr.v4.runtime.misc.NotNull;
-
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.*;
@@ -16,7 +14,6 @@ public class BorrowedBook {
   @JsonBackReference
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "borrow_card_id", nullable = false)
-  @NotNull
   private BorrowCard borrowCard;
 
   @Column(name = "book_id")

@@ -2,10 +2,20 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "../components/sidebar/Sidebar";
-import { BookCheck, List, Loader, MailWarning, Plus, Search, TicketX, TimerOff } from "lucide-react";
+import {
+  BookCheck,
+  List,
+  Loader,
+  MailWarning,
+  Plus,
+  Search,
+  TicketX,
+  TimerOff,
+} from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import toast from "react-hot-toast";
+import { ThreeDot } from "react-loading-indicators";
 
 const page = () => {
   const [allBorrowCards, setAllBorrowCards] = useState([]);
@@ -16,9 +26,10 @@ const page = () => {
   const itemsPerPage = 10;
 
   const fetchBorrowCards = async () => {
+    setLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/api/borrow-cards`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/borrow-cards`,
         {
           method: "GET",
         }
@@ -26,9 +37,13 @@ const page = () => {
       const data = await response.json();
       console.log(data);
       setAllBorrowCards(data);
-      setTotalPages(Math.ceil(data.length / itemsPerPage));
+      setTotalPages(Math.ceil(data.length / itemsPerPage) || 1);
+      setCurrentPage(1); // Reset to first page
     } catch (error) {
       console.error("Lỗi khi fetch phiếu mượn:", error);
+      toast.error("Không thể tải dữ liệu phiếu mượn.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,12 +70,14 @@ const page = () => {
           : null
       );
       setSearchFilter(filter);
-      setTotalPages(Math.ceil(filter.length / itemsPerPage));
+      setTotalPages(Math.ceil(filter.length / itemsPerPage) || 1);
+      setCurrentPage(1); // Reset to first page
       setLoading(false);
       if (filter.length < 1) toast.error("Không tìm thấy kết quả");
     } else {
       setSearchFilter([]);
-      setTotalPages(Math.ceil(filteredCards.length / itemsPerPage));
+      setTotalPages(Math.ceil(filteredCards.length / itemsPerPage) || 1);
+      setCurrentPage(1); // Reset to first page
     }
   };
 
@@ -88,32 +105,39 @@ const page = () => {
     try {
       const responses = await Promise.all(
         list.map((item) =>
-          fetch(`http://localhost:8080/api/borrow-cards/expired/${item?.id}`, {
-            method: "PUT",
-          })
+          fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/borrow-cards/expired/${item?.id}`,
+            {
+              method: "PUT",
+            }
+          )
         )
       );
       toast.success("Xem xét phiếu hết hạn thành công");
       fetchBorrowCards();
     } catch (error) {
       console.error("Lỗi khi xem xét phiếu hết hạn:", error);
+      toast.error("Lỗi khi xem xét phiếu hết hạn.");
     }
   };
 
   const fetchMailing = async (list) => {
     try {
-      const response = await fetch("http://localhost:8080/api/borrow-cards/askToReturn", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(list),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/borrow-cards/askToReturn`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(list),
+        }
+      );
       toast.success("Gửi mail hối trả sách thành công");
       fetchBorrowCards();
     } catch (error) {
       toast.error("Lỗi khi gửi mail hối trả sách");
-      console.error("Lỗi khi gửi mail hối trả sách :", error);
+      console.error("Lỗi khi gửi mail hối trả sách:", error);
     }
   };
 
@@ -135,8 +159,15 @@ const page = () => {
   };
 
   // Phân trang
-  const paginatedCards = (searchFilter.length > 0 ? searchFilter : filteredCards)
-    ?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const paginatedCards = (
+    searchFilter.length > 0 ? searchFilter : filteredCards
+  )?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Generate page numbers for pagination
+  const pageNumbers = [];
+  for (let i = 1; i <= totalPages; i++) {
+    pageNumbers.push(i);
+  }
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
@@ -155,7 +186,9 @@ const page = () => {
               <div className="flex w-2/3 gap-5">
                 <Button
                   className={`flex flex-1 gap-3 justify-center text-white hover:bg-gray-500 items-center text-[1.125rem] max-md:text-[1rem] font-medium rounded-md py-5 max-md:py-2 cursor-pointer ${
-                    selectedButton === "Đã yêu cầu" ? "bg-[#062D76]" : "bg-[#b6cefa]"
+                    selectedButton === "Đã yêu cầu"
+                      ? "bg-[#062D76]"
+                      : "bg-[#b6cefa]"
                   }`}
                   onClick={() => handleButtonClick("Đã yêu cầu")}
                 >
@@ -171,7 +204,9 @@ const page = () => {
 
                 <Button
                   className={`flex flex-1 gap-3 justify-center text-white hover:bg-gray-500 items-center text-[1.125rem] max-md:text-[1rem] font-medium rounded-md py-5 max-md:py-2 cursor-pointer ${
-                    selectedButton === "Đang mượn" ? "bg-[#062D76]" : "bg-[#b6cefa]"
+                    selectedButton === "Đang mượn"
+                      ? "bg-[#062D76]"
+                      : "bg-[#b6cefa]"
                   }`}
                   onClick={() => handleButtonClick("Đang mượn")}
                 >
@@ -185,10 +220,11 @@ const page = () => {
                   Đang mượn
                 </Button>
 
-                {/* Returned Status */}
                 <Button
                   className={`flex flex-1 gap-3 justify-center text-white hover:bg-gray-500 items-center text-[1.125rem] max-md:text-[1rem] font-medium rounded-md py-5 max-md:py-2 cursor-pointer ${
-                    selectedButton === "Đã trả" ? "bg-[#062D76]" : "bg-[#b6cefa]"
+                    selectedButton === "Đã trả"
+                      ? "bg-[#062D76]"
+                      : "bg-[#b6cefa]"
                   }`}
                   onClick={() => handleButtonClick("Đã trả")}
                 >
@@ -203,7 +239,6 @@ const page = () => {
                 </Button>
               </div>
               <div className="flex gap-5">
-                {/* Bên Phải */}
                 <Input
                   type="text"
                   placeholder="Tìm kiếm"
@@ -223,11 +258,15 @@ const page = () => {
                 </Button>
               </div>
             </header>
-            {/* Borrowing Cards Section */}
             <section className="gap-y-2.5 mt-5">
               {loading ? (
                 <div className="flex justify-center">
-                  <ThreeDot color="#062D76" size="large" text="Đang tải..." textColor="#062D76" />
+                  <ThreeDot
+                    color="#062D76"
+                    size="large"
+                    text="Đang tải..."
+                    textColor="#062D76"
+                  />
                 </div>
               ) : paginatedCards?.length > 0 ? (
                 paginatedCards.map((borrowing) => (
@@ -267,9 +306,13 @@ const page = () => {
 
                           {selectedButton === "Đã trả" && (
                             <>
-                              {borrowing.dueDate ? "Ngày trả: " : "Hạn lấy sách: "}
+                              {borrowing.dueDate
+                                ? "Ngày trả: "
+                                : "Hạn lấy sách: "}
                               <span className="text-[#131313] font-medium">
-                                {borrowing.dueDate ? formatDate(borrowing.dueDate) : formatDate(borrowing.getBookDate)}
+                                {borrowing.dueDate
+                                  ? formatDate(borrowing.dueDate)
+                                  : formatDate(borrowing.getBookDate)}
                               </span>
                             </>
                           )}
@@ -305,31 +348,47 @@ const page = () => {
                   </article>
                 ))
               ) : (
-                <p className="text-center text-gray-600">Không có phiếu mượn nào.</p>
+                <p className="text-center text-gray-600">
+                  Không có phiếu mượn nào.
+                </p>
               )}
             </section>
-            {/* Pagination */}
-            <div className="mt-4 flex justify-center gap-2">
-              <Button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1 || loading}
-                className="px-4 py-2 bg-[#062D76] text-white rounded cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                Trang trước
-              </Button>
-              <span className="px-4 py-2 text-gray-700">
-                Trang {currentPage} / {totalPages}
-              </span>
-              <Button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages || loading}
-                className="px-4 py-2 bg-[#062D76] text-white rounded cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                Trang sau
-              </Button>
-            </div>
-            {/* Nút Thêm - Floating Button */}
-            <div className={`fixed bottom-6 right-10 ${selectedButton === "Đã yêu cầu" ? "" : "hidden"}`}>
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-6">
+                <Button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1 || loading}
+                  className="bg-[#062D76] hover:bg-gray-700 text-white"
+                >
+                  Trước
+                </Button>
+                {pageNumbers.map((number) => (
+                  <Button
+                    key={number}
+                    onClick={() => handlePageChange(number)}
+                    className={`${
+                      currentPage === number
+                        ? "bg-[#062D76] text-white"
+                        : "bg-white text-[#062D76] border border-[#062D76] hover:bg-gray-100"
+                    }`}
+                  >
+                    {number}
+                  </Button>
+                ))}
+                <Button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages || loading}
+                  className="bg-[#062D76] hover:bg-gray-700 text-white"
+                >
+                  Sau
+                </Button>
+              </div>
+            )}
+            <div
+              className={`fixed bottom-6 right-10 ${
+                selectedButton === "Đã yêu cầu" ? "" : "hidden"
+              }`}
+            >
               <Button
                 title={"Xét phiếu đã trả"}
                 className="bg-red-700 rounded-3xl w-12 h-12 border-2 border-white"
@@ -349,7 +408,11 @@ const page = () => {
                 <Plus className="w-24 h-24" color="white" />
               </Button>
             </div>
-            <div className={`fixed bottom-6 right-10 ${selectedButton === "Đang mượn" ? "" : "hidden"}`}>
+            <div
+              className={`fixed bottom-6 right-10 ${
+                selectedButton === "Đang mượn" ? "" : "hidden"
+              }`}
+            >
               <Button
                 title={"Gửi Mail hối trả sách"}
                 className="bg-red-700 rounded-3xl w-12 h-12 border-2 border-white"

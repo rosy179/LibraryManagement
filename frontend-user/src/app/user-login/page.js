@@ -146,13 +146,16 @@ const Page = () => {
         gender: data.gioiTinh,
       };
 
-      const response = await fetch("http://localhost:8080/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const result = await response.json();
 
@@ -180,7 +183,7 @@ const Page = () => {
   const onSubmitOTP = async (data) => {
     try {
       const verifyResponse = await fetch(
-        "http://localhost:8080/api/register/verify-otp",
+        `${process.env.NEXT_PUBLIC_API_URL}/api/register/verify-otp`,
         {
           method: "POST",
           headers: {
@@ -221,13 +224,16 @@ const Page = () => {
         password: data.matKhau,
       };
 
-      const response = await fetch("http://localhost:8080/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/login`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
       const result = await response.json();
 
@@ -272,8 +278,9 @@ const Page = () => {
   }, [resetLoginForm, resetSignUpForm]);
 
   return (
-    <div className="min-h-screen bg-[#F9FDFF] flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <Toaster position="top-right" toastOptions={{ duration: 5000 }} />
+
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -282,11 +289,11 @@ const Page = () => {
         <Card className="w-[25vw] border-[#062D76]">
           <CardHeader>
             <CardTitle className="flex justify-center">
-              <img src="/images/logo.jpg" alt="logo" className="w-30" />
+              <img src="/images/logoN.png" alt="logo" className="w-80 h-45" />
             </CardTitle>
-            <CardDescription className="text-center text-[#062D76]">
+            {/* <CardDescription className="text-center text-[#062D76]">
               Mỗi cuốn sách là một cánh cửa mở ra thế giới tri thức
-            </CardDescription>
+            </CardDescription> */}
           </CardHeader>
 
           <CardContent>
@@ -305,7 +312,7 @@ const Page = () => {
                 <TabsContent value="login">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="identifier" className="text-[#086280]">
+                      <Label htmlFor="identifier" className="text-blue-800">
                         Email hoặc Số điện thoại
                       </Label>
                       <Input
@@ -313,7 +320,7 @@ const Page = () => {
                         type="text"
                         {...registerLogin("identifier")}
                         placeholder="Nhập email hoặc số điện thoại"
-                        className="col-span-3 dark:border-gray-400 border-[#0E42D2] placeholder:text-gray-400"
+                        className="col-span-3 dark:border-gray-400 border-blue-200 placeholder:text-gray-400"
                       />
                       {errorsLogin.identifier && (
                         <p className="text-red-500">
@@ -323,7 +330,7 @@ const Page = () => {
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="matKhau" className="text-[#086280]">
+                        <Label htmlFor="matKhau" className="text-blue-800">
                           Mật khẩu
                         </Label>
                         <button
@@ -331,7 +338,12 @@ const Page = () => {
                           className="flex items-center text-gray-600 text-sm"
                           onClick={() => setShowPassword(!showPassword)}
                         >
-                          {showPassword ? <EyeOff className="w-5 h-5 ml-1" /> : <Eye className="w-5 h-5 ml-1" />}
+                          {showPassword ? (
+                            <EyeOff className="w-5 h-5 ml-1" />
+                          ) : (
+                            <Eye className="w-5 h-5 ml-1" />
+                          )}
+
                           {showPassword ? "Ẩn" : "Hiện"}
                         </button>
                       </div>
@@ -340,7 +352,7 @@ const Page = () => {
                         type={showPassword ? "text" : "password"}
                         {...registerLogin("matKhau")}
                         placeholder="Nhập mật khẩu của bạn"
-                        className="col-span-3 dark:border-gray-400 border-[#0E42D2] placeholder:text-gray-400"
+                        className="col-span-3 dark:border-gray-400 border-blue-200 placeholder:text-gray-400"
                       />
                       {errorsLogin.matKhau && (
                         <p className="text-red-500">
@@ -355,7 +367,7 @@ const Page = () => {
                     </div>
                     <Button
                       onClick={handleSubmitLogin(onSubmitLogin)}
-                      className="w-full bg-[#062D76] text-white"
+                      className="w-full bg-blue-300 text-white cursor-pointer"
                     >
                       <LogIn className="mr-2 w-4 h-4" /> Đăng nhập
                     </Button>
@@ -370,7 +382,7 @@ const Page = () => {
                 <TabsContent value="signup">
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="tenND" className="text-[#086280]">
+                      <Label htmlFor="tenND" className="text-blue-800">
                         Tên người dùng
                       </Label>
                       <Input
@@ -378,7 +390,7 @@ const Page = () => {
                         type="text"
                         {...registerSignUp("tenND")}
                         placeholder="Nhập tên người dùng"
-                        className="col-span-3 dark:border-gray-400 border-[#0E42D2] placeholder:text-gray-400"
+                        className="col-span-3 dark:border-gray-400 border-blue-200 placeholder:text-gray-400"
                       />
                       {errorsSignUp.tenND && (
                         <p className="text-red-500">
@@ -387,7 +399,7 @@ const Page = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="identifier" className="text-[#086280]">
+                      <Label htmlFor="identifier" className="text-blue-800">
                         Email hoặc Số điện thoại
                       </Label>
                       <Input
@@ -395,7 +407,7 @@ const Page = () => {
                         type="text"
                         {...registerSignUp("identifier")}
                         placeholder="Nhập email hoặc số điện thoại"
-                        className="col-span-3 dark:border-gray-400 border-[#0E42D2] placeholder:text-gray-400"
+                        className="col-span-3 dark:border-gray-400 border-blue-200 placeholder:text-gray-400"
                       />
                       {errorsSignUp.identifier && (
                         <p className="text-red-500">
@@ -404,7 +416,7 @@ const Page = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="matKhau" className="text-[#086280]">
+                      <Label htmlFor="matKhau" className="text-blue-800">
                         Mật khẩu
                       </Label>
                       <Input
@@ -412,7 +424,7 @@ const Page = () => {
                         type="password"
                         {...registerSignUp("matKhau")}
                         placeholder="Nhập mật khẩu"
-                        className="col-span-3 dark:border-gray-400 border-[#0E42D2] placeholder:text-gray-400"
+                        className="col-span-3 dark:border-gray-400 border-blue-200 placeholder:text-gray-400"
                       />
                       {errorsSignUp.matKhau && (
                         <p className="text-red-500">
@@ -426,7 +438,7 @@ const Page = () => {
                         id="ngaySinh"
                         type="date"
                         {...registerSignUp("ngaySinh")}
-                        className="col-span-3 dark:border-gray-400 border-[#0E42D2]"
+                        className="col-span-3 dark:border-gray-400 border-blue-200"
                       />
                       {errorsSignUp.ngaySinh && (
                         <p className="text-red-500">
@@ -435,7 +447,7 @@ const Page = () => {
                       )}
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[#086280]">Giới tính</Label>
+                      <Label className="text-blue-800">Giới tính</Label>
                       <Controller
                         name="gioiTinh"
                         control={control}
@@ -468,7 +480,7 @@ const Page = () => {
                     </div>
                     <Button
                       onClick={handleSubmitSignUp(onSubmitRegister)}
-                      className="w-full bg-[#062D76] text-white"
+                      className="w-full bg-blue-300 text-white"
                     >
                       Đăng ký
                     </Button>
@@ -485,7 +497,7 @@ const Page = () => {
                   Vui lòng nhập mã OTP được gửi đến {otpEmail}
                 </p>
                 <div className="space-y-2">
-                  <Label htmlFor="otp" className="text-[#086280]">
+                  <Label htmlFor="otp" className="text-blue-800">
                     Mã OTP
                   </Label>
                   <Input
@@ -493,9 +505,11 @@ const Page = () => {
                     type="text"
                     {...registerOTP("otp")}
                     placeholder="Nhập mã OTP 6 chữ số"
-                    className="col-span-3 dark:border-gray-400 border-[#0E42D2] placeholder:text-gray-400"
+                    className="col-span-3 dark:border-gray-400 border-blue-200 placeholder:text-gray-400"
                   />
-                  {errorsOTP.otp && <p className="text-red-500">{errorsOTP.otp.message}</p>}
+                  {errorsOTP.otp && (
+                    <p className="text-red-500">{errorsOTP.otp.message}</p>
+                  )}
                 </div>
                 <Button
                   onClick={handleSubmitOTP(onSubmitOTP)}

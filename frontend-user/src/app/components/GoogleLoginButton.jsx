@@ -5,22 +5,28 @@ import { FcGoogle } from "react-icons/fc";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { updateUser } from "@/store/slices/userSlice";
+import Cookies from "js-cookie";
+import { toast } from "react-hot-toast";
 
 const GoogleLoginButton = () => {
   const router = useRouter();
+  const dispatch = useDispatch();
+  const error = new Error("Đã xảy ra lỗi, vui lòng thử lại");
 
   const login = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
         const accessToken = tokenResponse.access_token;
-
-        const res = await fetch("http://localhost:8080/api/auth/google", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ accessToken }),
-        });
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ accessToken }),
+          }
+        );
 
         const data = await res.json();
         console.log("Response from server:", data); // Log the response for debugging
@@ -30,19 +36,33 @@ const GoogleLoginButton = () => {
           localStorage.setItem("refreshToken", data.data.refreshToken);
           localStorage.setItem("id", data.data.user.id);
 
-          // dispatch(
-          //   updateUser({
-          //     ...result.data.user,
-          //     access_token: result.data.accessToken,
-          //     refreshToken: result.data.refreshToken,
-          //   })
-          // );
+          Cookies.set("refreshToken", data.data.refreshToken, {
+            expires: 7,
+            sameSite: "Strict",
+          });
+          dispatch(
+            updateUser({
+              ...data.data.user,
+              access_token: data.data.accessToken,
+              refreshToken: data.data.refreshToken,
+            })
+          );
+
+          toast.success(data.message || "Đăng nhập thành công", {
+            style: { background: "#d1fae5", color: "#065f46" },
+          });
           router.push("/");
         } else {
+          toast.error(error.message || "Đã xảy ra lỗi, vui lòng thử lại", {
+            style: { background: "#fee2e2", color: "#b91c1c" },
+          });
           console.error("Đăng nhập thất bại:", data.message || data.error);
           router.push("/user-login");
         }
       } catch (err) {
+        toast.error(error.message || "Đã xảy ra lỗi, vui lòng thử lại", {
+          style: { background: "#fee2e2", color: "#b91c1c" },
+        });
         console.error("Lỗi khi gọi API:", err.message);
       }
     },

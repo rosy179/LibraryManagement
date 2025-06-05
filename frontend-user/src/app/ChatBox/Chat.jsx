@@ -1,68 +1,50 @@
-"use client";
-import { useState } from "react";
-import ChatHeader from "./ChatHeader";
-import ChatMessage from "./ChatMessage";
-import ChatInput from "./ChatInput";
+import React, { useState } from "react";
 
 const Chat = () => {
   const [message, setMessage] = useState("");
-  const [messages] = useState([
-    {
-      id: 1,
-      text: "Hello Nice",
-      isVisitor: false,
-      timestamp: "02:10 PM",
-    },
-    {
-      id: 2,
-      text: "Welcome to LiveChat I was made with Pick a topic from the list or type down a question!",
-      isVisitor: false,
-      timestamp: "02:10 PM",
-    },
-    {
-      id: 3,
-      text: "Welcome",
-      isVisitor: true,
-      timestamp: "02:12 PM",
-      isRead: true,
-    },
-    {
-      id: 4,
-      text: "Hello Nice",
-      isVisitor: false,
-      timestamp: "02:10 PM",
-    },
-  ]);
+  const [reply, setReply] = useState("");
+  const [input, setInput] = useState("");
 
-  const handleSend = () => {
-    if (message.trim()) {
-      // Handle sending message
-      setMessage("");
+  const user = JSON.parse(localStorage.getItem("persist:root"));
+
+  const sendMessage = async () => {
+    if (!message.trim()) {
+      alert("Vui lòng nhập câu hỏi.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      });
+      const data = await res.json();
+      setReply(data.reply);
+    } catch (err) {
+      console.error("Lỗi khi gửi tin nhắn:", err);
     }
   };
 
   return (
-    <main className="absolute sm:bottom-[1rem] sm:right-[3.125rem] flex-col items-start rounded-xl shadow-lg h-auto w-[330px]">
-      <ChatHeader />
-      <section className="flex-1 w-full overflow-y-auto max-h-[340px] bg-slate-200">
-        <div className="flex flex-col gap-3 p-3">
-          {messages.map((msg) => (
-            <ChatMessage
-              key={msg.id}
-              message={msg.text}
-              isVisitor={msg.isVisitor}
-              timestamp={msg.timestamp}
-              isRead={msg.isRead}
-            />
-          ))}
-        </div>
-      </section>
-      <ChatInput
-        message={message}
-        onMessageChange={setMessage}
-        onSend={handleSend}
+    <div className="bg-white rounded-xl shadow-lg p-4 space-y-3">
+      <h2 className="font-bold text-lg">AI Chatbot</h2>
+      <div className="text-gray-800 bg-gray-100 p-3 rounded">{reply}</div>
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        placeholder="Nhập câu hỏi..."
+        className="w-full border p-2 rounded"
       />
-    </main>
+      <button
+        onClick={sendMessage}
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+      >
+        Gửi
+      </button>
+    </div>
   );
 };
 

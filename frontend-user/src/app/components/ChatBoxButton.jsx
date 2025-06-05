@@ -1,148 +1,8 @@
-// "use client";
-// import {
-//   Send,
-//   MessageCircleMore,
-//   Minus,
-//   Maximize,
-//   Minimize,
-// } from "lucide-react";
-// import { Button } from "@/components/ui/button";
-// import React, { useState, useEffect } from "react";
-
-// const ChatBotButton = () => {
-//   const [isOpen, setIsOpen] = useState(false);
-//   const [isFullScreen, setIsFullScreen] = useState(false);
-//   const [messages, setMessages] = useState([
-//     { sender: "bot", text: "Hello Nice" },
-//     {
-//       sender: "bot",
-//       text: "Welcome to LiveChat! I was made with Pick a topic from the list or type down a question!",
-//     },
-//     { sender: "user", text: "Welcome" },
-//     { sender: "bot", text: "Hello Nice" },
-//   ]);
-//   const [input, setInput] = useState("");
-
-//   const sendMessage = () => {
-//     if (input.trim() === "") return;
-//     const newMessage = {
-//       sender: "user",
-//       text: input,
-//       time: new Date().toLocaleTimeString([], {
-//         hour: "2-digit",
-//         minute: "2-digit",
-//       }), // Lấy giờ:phút
-//     };
-
-//     setMessages((prev) => [...prev, newMessage]);
-//     setInput("");
-//   };
-
-//   return (
-//     <div className="fixed bottom-4 right-4 flex flex-col items-end">
-//       {/* Nút mở chat */}
-//       <Button
-//         onClick={() => setIsOpen(!isOpen)}
-//         className="w-12 h-12 p-0 bg-blue-500 rounded-full flex items-center justify-center hover:opacity-80 hover:bg-blue-600 relative"
-//       >
-//         <MessageCircleMore className="w-8 h-8 text-white size-0.3" />
-//         <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-600 rounded-full flex items-center justify-center">
-//           <span className="text-white text-sm font-semibold">1</span>
-//         </div>
-//       </Button>
-
-//       {/* Hộp chat */}
-//       {isOpen && (
-//         <div
-//           className={`${
-//             isFullScreen
-//               ? "fixed inset-0 w-full h-full"
-//               : "fixed bottom-20 right-4 w-80 h-96"
-//           } bg-white rounded-xl flex flex-col border-2 border-blue-300`}
-//         >
-//           {/* Header */}
-//           <div className="flex justify-between items-center p-3 border-b rounded-tl-xl rounded-tr-xl bg-[#E6EAF1]">
-//             <span className="text-lg font-semibold text-gray-700">
-//               Chat Box
-//             </span>
-//             <div className="flex gap-2">
-//               <button
-//                 onClick={() => setIsOpen(false)}
-//                 className="text-gray-600 hover:text-gray-800"
-//               >
-//                 <Minus className="w-5 h-5" />
-//               </button>
-//               <button
-//                 onClick={() => setIsFullScreen(!isFullScreen)}
-//                 className="text-gray-600 hover:text-gray-800"
-//               >
-//                 {isFullScreen ? (
-//                   <Minimize className="w-5 h-5" />
-//                 ) : (
-//                   <Maximize className="w-5 h-5" />
-//                 )}
-//               </button>
-//             </div>
-//           </div>
-
-//           {/* Nội dung chat */}
-//           <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-[#E6EAF1]">
-//             {messages.map((msg, index) => (
-//               <div
-//                 key={index}
-//                 className={`flex ${
-//                   msg.sender === "user" ? "justify-end" : "justify-start"
-//                 }`}
-//               >
-//                 <div flex flex-col>
-//                   <span className="text-xs text-gray-500 mt-1">
-//                     {`${msg.sender === "user" ? "Visitor\t" : "LiveChat\t"}`}
-//                     {msg.time ||
-//                       new Date().toLocaleTimeString([], {
-//                         hour: "2-digit",
-//                         minute: "2-digit",
-//                       })}
-//                   </span>
-//                   <div
-//                     className={`px-4 py-2 rounded-lg ${
-//                       msg.sender === "user"
-//                         ? "bg-blue-500 text-white"
-//                         : "bg-white text-gray-700"
-//                     }`}
-//                   >
-//                     {msg.text}
-//                   </div>
-//                 </div>
-//               </div>
-//             ))}
-//           </div>
-
-//           {/* Ô nhập tin nhắn */}
-//           <div className="flex p-2 border-0 bg-white items-center rounded-br-xl rounded-bl-xl">
-//             <input
-//               type="text"
-//               value={input}
-//               onChange={(e) => setInput(e.target.value)}
-//               placeholder="Type a message..."
-//               className="w-full border-0 rounded-xl px-3 py-2 outline-none"
-//             />
-//             <Button
-//               onClick={sendMessage}
-//               className="ml-2 bg-white text-black px-2 py-2 rounded-lg hover:bg-90 hover:bg-blue-200"
-//             >
-//               <Send className="w-6 h-6 size-0.5" />
-//             </Button>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default ChatBotButton;
+// components/ChatBotButton.jsx
 "use client";
-import React, { use, useState } from "react";
-import Chat from "../ChatBox/Chat";
+
+import React, { useState } from "react";
+import axios from "axios";
 
 const ChatIcon = () => {
   return (
@@ -150,7 +10,7 @@ const ChatIcon = () => {
       viewBox="0 0 36 36"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className="chat-svg w-[2.25rem] h-[2.25rem]"
+      className="w-9 h-9"
     >
       <mask
         id="mask0_342_2441"
@@ -158,7 +18,8 @@ const ChatIcon = () => {
         maskUnits="userSpaceOnUse"
         x="1"
         y="1"
-        className=" w-[2.0625rem] h-[2.0625rem]"
+        width="33"
+        height="33"
       >
         <path
           fillRule="evenodd"
@@ -200,7 +61,7 @@ const ChatIcon = () => {
 const NotificationBadge = ({ count }) => {
   return (
     <div
-      className="absolute self-center w-[1.5rem] text-[1rem] font-bold text-center justify-center items-center text-white bg-[#F7302E] rounded-full"
+      className="absolute top-0 right-0 w-6 h-6 text-sm font-bold text-white bg-red-500 rounded-full flex items-center justify-center"
       role="status"
       aria-label={`${count} unread messages`}
     >
@@ -209,25 +70,136 @@ const NotificationBadge = ({ count }) => {
   );
 };
 
+const Chat = () => {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+
+    const userMessage = { role: "user", content: input };
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
+    setIsLoading(true);
+
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/chat`,
+        { message: input },
+        {
+          headers: { "Content-Type": "application/json" },
+          timeout: 10000,
+        }
+      );
+
+      const reply = {
+        role: "assistant",
+        content: res.data.reply || "No response from server",
+      };
+      setMessages((prev) => [...prev, reply]);
+    } catch (err) {
+      console.error("Error sending message:", err);
+      let errorMessage = "Lỗi kết nối với server";
+      if (err.response) {
+        if (err.response.status === 429) {
+          errorMessage = "Quá nhiều yêu cầu. Vui lòng thử lại sau vài giây!";
+        } else {
+          errorMessage =
+            err.response.data?.reply || `Server error: ${err.response.status}`;
+        }
+      } else if (err.request) {
+        errorMessage =
+          "Không thể kết nối đến server. Vui lòng kiểm tra server!";
+      } else {
+        errorMessage = err.message;
+      }
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: errorMessage },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-white shadow-lg rounded-lg p-4 w-[300px] h-[400px] flex flex-col">
+      <div className="flex-1 overflow-y-auto mb-2">
+        {messages.map((msg, i) => (
+          <div
+            key={i}
+            className={`mb-2 flex ${
+              msg.role === "user" ? "justify-end" : "justify-start"
+            }`}
+          >
+            <span
+              className={`inline-block p-2 rounded-lg max-w-[80%] ${
+                msg.role === "user" ? "bg-blue-100" : "bg-gray-100"
+              }`}
+            >
+              {msg.content}
+            </span>
+          </div>
+        ))}
+        {isLoading && (
+          <div className="flex justify-start mb-2">
+            <span className="inline-block p-2 rounded-lg bg-gray-100">
+              Đang xử lý...
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          className="flex-1 border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="Nhập câu hỏi..."
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
+            }
+          }}
+          disabled={isLoading}
+        />
+        <button
+          onClick={sendMessage}
+          className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 disabled:bg-blue-400"
+          disabled={isLoading}
+        >
+          Gửi
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const ChatBotButton = () => {
   const [showChat, setShowChat] = useState(false);
   const [notificationVisible, setNotificationVisible] = useState(true);
+
   const toggleChat = () => {
-    setShowChat(!showChat);
+    setShowChat((prev) => !prev);
     setNotificationVisible(false);
   };
+
   return (
-    <div className="fixed bottom-[1.5rem] right-[2rem] h-[4rem] w-[4rem]">
+    <div className="fixed bottom-6 right-8 z-50">
       <button
         onClick={toggleChat}
-        className="flex absolute top-1.5 left-1.5 justify-center items-center p-[0.75rem] bg-blue-800 rounded-[999px] cursor-pointer"
-        aria-label="Chat messages"
+        className="relative flex items-center justify-center w-16 h-16 bg-blue-800 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+        aria-label="Open chat"
       >
         <ChatIcon />
+        {notificationVisible && <NotificationBadge count={1} />}
       </button>
-      {/* Hiển thị NotificationBadge nếu notificationVisible là true */}
-      {notificationVisible && <NotificationBadge count={1} />}
-      {showChat && <Chat />}
+      {showChat && (
+        <div className="absolute bottom-20 right-0 w-[300px]">
+          <Chat />
+        </div>
+      )}
     </div>
   );
 };
